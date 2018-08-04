@@ -324,6 +324,40 @@ pipeline {
           }
         }
 
+        stage('ROS FW standard mission') {
+          agent {
+            docker {
+              image 'px4io/px4-dev-ros:2018-07-19'
+              args '-e CCACHE_BASEDIR=$WORKSPACE -v ${CCACHE_DIR}:${CCACHE_DIR}:rw -e HOME=$WORKSPACE'
+            }
+          }
+          options {
+            skipDefaultCheckout()
+          }
+          steps {
+            sh 'export'
+            sh 'rm -rf build; rm -rf px4-posix_sitl_default*; rm -rf .ros; rm -rf .gazebo'
+            unstash 'px4_sitl_package'
+            sh 'tar -xjpvf build/posix_sitl_default/px4-posix_sitl_default*.bz2'
+            sh 'px4-posix_sitl_default*/px4/test/rostest_px4_run.sh mavros_posix_test_mission.test mission:=vtol_new_1 vehicle:=plane'
+            sh 'px4-posix_sitl_default*/px4/Tools/ecl_ekf/process_logdata_ekf.py `find . -name *.ulg -print -quit`'
+          }
+          post {
+            always {
+              sh 'px4-posix_sitl_default*/px4/Tools/upload_log.py -q --description "${JOB_NAME}: ${STAGE_NAME}" --feedback "${JOB_NAME} ${CHANGE_TITLE} ${CHANGE_URL}" --source CI .ros/rootfs/fs/microsd/log/*/*.ulg'
+              archiveArtifacts '.ros/**/*.pdf'
+              archiveArtifacts '.ros/**/*.csv'
+              deleteDir()
+            }
+            failure {
+              sh 'ls -a'
+              archiveArtifacts '.ros/**/*.ulg'
+              archiveArtifacts '.ros/**/rosunit-*.xml'
+              archiveArtifacts '.ros/**/rostest-*.log'
+            }
+          }
+        }
+
         stage('ROS vtol standard mission') {
           agent {
             docker {
