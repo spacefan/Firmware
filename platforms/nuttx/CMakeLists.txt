@@ -298,11 +298,15 @@ if (BLOATY_PROGRAM)
 endif()
 
 # debugger helpers
-configure_file(gdbinit.in .gdbinit)
+set(DEBUG_PORT "/dev/ttyACM0" CACHE STRING "debugging port")
+
+#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Debug/gdbinit.in ${PX4_BINARY_DIR}/.gdbinit)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Debug/gdb_px4_nuttx.scr.in ${PX4_BINARY_DIR}/gdb_px4_nuttx.scr)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Debug/black_magic_probe_connect.scr.in ${PX4_BINARY_DIR}/black_magic_probe_connect.scr)
 
 add_custom_target(debug
 	COMMAND ${GDB} $<TARGET_FILE:${FW_NAME}>
-	DEPENDS ${FW_NAME} ${CMAKE_CURRENT_BINARY_DIR}/.gdbinit
+	#DEPENDS ${FW_NAME} ${PX4_BINARY_DIR}/.gdbinit
 	USES_TERMINAL
 	)
 

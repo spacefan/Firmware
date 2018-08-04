@@ -1,0 +1,32 @@
+# Based on https://github.com/blacksphere/blackmagic/wiki/GDB-Automation 2018-08-05
+# Usage:
+#  arm-none-eabi-gdb --batch -nx \
+#   -ex "target extended-remote /dev/ttyACM0" \
+#   -x black_magic_probe_flash.scr \
+#   nuttx_px4fmu-v2_default.elf
+
+source ${PX4_BINARY_DIR}/gdb_px4_nuttx.scr
+
+#target extended-remote /dev/serial/by-id/usb-Black_Sphere_Technologies_Black_Magic_Probe_*-if00
+
+# Print black magic probe version
+monitor version
+
+# To make sure the target is not in a "strange" mode we tell BMPM to reset the
+# target using the reset pin before connecting to it.
+monitor connect_srst enable
+
+monitor tpwr disable
+
+# Scan for devices using SWD interface
+monitor swdp_scan
+
+# Attach to the newly found target if available. (if it fails the script exits)
+attach 1
+
+# Load aka. flash the binary
+echo Loading binary...
+load
+
+# Check if the flash matches the binary
+compare-sections
