@@ -173,3 +173,7 @@ set(config_module_list
 	# Hardware test
 	#examples/hwtest
 )
+
+# This will set core to minimum required tasks to preserve backwards compatibility.
+# The flag is only required for targets, which have memory lower than default.
+set(flight_tasks_minimum_core true CACHE BOOL "Sets core flighttask to minimum.")
